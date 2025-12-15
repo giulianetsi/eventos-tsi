@@ -1,0 +1,13 @@
+{
+  "name": "tcc-pt1-root",
+  "private": true,
+  "scripts": {
+    "start": "npm run start-backend",
+    "start-backend": "cd backend && npm start",
+    "start-frontend": "cd frontend && npm start"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "mysql": "^2.18.1"
+  }
+}

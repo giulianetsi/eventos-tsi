@@ -1,0 +1,65 @@
+:root{
+  --btn-primary-bg: #6BA82C;
+  --btn-primary-color: #ffffff;
+  --btn-secondary-bg: #ffffff;
+  --btn-secondary-color: #6BA82C;
+  --btn-outline-border: #ced4da;
+}
+
+.app-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0 .9rem;
+  height: 44px;
+  min-width: 96px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color .12s ease, color .12s ease, border-color .12s ease, transform .06s ease;
+  user-select: none;
+}
+
+.app-btn:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(77,111,42,0.15);
+}
+
+.app-btn--primary{
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  border-color: transparent;
+}
+.app-btn--primary:hover{ background: #3f5a20; }
+
+.app-btn--secondary{
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-color);
+  border-color: var(--btn-outline-border);
+}
+.app-btn--secondary:hover{ background: #f5f7f5; }
+
+.app-btn--outline{
+  background: transparent;
+  color: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bg);
+}
+.app-btn--outline:hover{ background: rgba(77,111,42,0.06); }
+
+.app-btn--md{ height:44px; padding: 0 14px; font-size: 15px; }
+.app-btn--sm{ height:36px; padding: 0 10px; font-size: 13px; }
+
+.app-btn--fixed{ min-width: 120px; }
+.app-btn--disabled, .app-btn[disabled]{ opacity: .6; cursor: not-allowed; transform: none; }
+
+/* utility shape used across the app to match primary rounded shape but keep color semantics */
+.app-btn--primary-shape{
+  border-radius: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* small helpers */
+.app-btn .spinner-border{ width: 16px; height: 16px; }

@@ -1,0 +1,28 @@
+{
+  "short_name": "Eventos IFSUL",
+  "name": "Sistema de Eventos IFSUL",
+  "icons": [
+    {
+      "src": "ifsul-logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "ifsul-logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "ifsul-logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#91D050",
+  "background_color": "#ffffff"
+}

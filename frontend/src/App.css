@@ -1,0 +1,1869 @@
+.event-card-add-large {
+  min-height: 120px;
+  min-width: 120px;
+  font-size: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #6BA82C;
+  color: #fff;
+  margin-bottom: 12px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.event-card-add-large:hover {
+  background-color: #5c9126;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.13);
+}
+/* Estilo para o fundo da página */
+body, html {
+  background-color: #f1f1f1; 
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow-x: auto; /* Permitir scroll horizontal apenas quando necessário */
+  overflow-y: auto; /* Permitir scroll vertical */
+}
+
+/* Reset para garantir que o scroll funcione */
+#root {
+  min-height: 100vh;
+}
+
+/* Estilo para o contêiner principal */
+.container {
+  padding: 20px;
+  min-height: calc(100vh - 60px); /* Usar min-height em vez de height fixa */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Mudar para flex-start para permitir conteúdo maior */
+}
+
+/* Centralização de formulários */
+.centered-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.centered-form {
+  min-height: 100vh;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.centered-form .col-md-4 {
+  max-width: 400px;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.navbar {
+  background-color: #6BA82C;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+/* Logo used in navbar (white) */
+.navbar-logo {
+  width: 180px;
+  height: auto;
+  display: block;
+  fill: #ffffff; /* ensure white if SVG uses currentColor or fill */
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+.navbar .menu-icon {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-links a {
+  margin: 0 10px;
+}
+
+/* User name displayed on the right side of the navbar */
+/* navbar user removed (no username displayed in topbar) */
+
+/* menu expansível na versão mobile */
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background-color: #6BA82C;
+    padding: 10px 6px;
+  }
+
+  .navbar-links.active {
+    display: flex;
+    align-items: stretch; /* make links expand full width */
+    gap: 6px;
+  }
+
+  /* Larger touch targets and readable text for mobile */
+  .navbar-links a,
+  .navbar-links button,
+  .navbar-links .nav-item {
+    font-size: 18px;
+    padding: 12px 16px;
+    margin: 4px 0;
+    display: block;
+    width: 100%;
+    text-align: left;
+    border-radius: 8px;
+    background: transparent;
+    color: #ffffff;
+    box-sizing: border-box;
+    min-height: 44px; /* touch target guideline */
+  }
+
+  .navbar-links a:hover,
+  .navbar-links button:hover,
+  .navbar-links .nav-item:hover {
+    background: rgba(0,0,0,0.06);
+  }
+
+  .navbar .menu-icon {
+    display: block;
+    font-size: 28px;
+    line-height: 1;
+    position: absolute;
+    left: 12px; /* fix to left edge on mobile */
+    top: 12px;
+    z-index: 1300; /* be above logo */
+  }
+
+  /* Slightly larger on very small screens */
+  @media (max-width: 420px) {
+    .navbar-links a,
+    .navbar-links button,
+    .navbar-links .nav-item {
+      font-size: 20px;
+      padding: 14px 18px;
+      min-height: 48px;
+    }
+  }
+}
+
+/* On small screens center the logo while hamburger is absolutely positioned */
+@media (max-width: 768px) {
+  .navbar { justify-content: center; }
+  .navbar-logo { margin: 0 auto; }
+}
+
+  /* Drawer styles for mobile */
+  .drawer {
+    position: fixed;
+    top: 0;
+    left: -320px; /* hidden by default */
+    width: 280px;
+    height: 100%;
+    background: #6BA82C; /* green background */
+    color: #fff;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    transition: left 220ms ease;
+  }
+  .drawer.open { left: 0; }
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* center logo in header */
+    padding: 18px 14px 12px 56px; /* extra left padding to account for hamburger */
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .drawer-logo { width: 160px; height: auto; filter: brightness(0) invert(1); margin-left: -40px; }
+  .drawer-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #fff; position: absolute; right: 12px; top: 12px; }
+  .drawer-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+  /* Remove visible outlines/borders for nav items; only the active item gets a translucent white background */
+  .drawer .nav-item { background: transparent; color: #fff; padding: 12px 14px; text-align: left; border-radius: 12px; font-size: 16px; display: flex; align-items: center; gap: 12px; border: none; box-shadow: none; }
+  .drawer .nav-item .nav-icon { width: 20px; height: 20px; opacity: 0.95; }
+  .drawer .nav-item:hover { background: rgba(255,255,255,0.04); }
+  .drawer .nav-item.active, .drawer .nav-item.selected { background: rgba(255,255,255,0.12); color: #fff; }
+  .drawer .nav-item:focus { outline: none; }
+  /* Show a green underline for the active item in the mobile drawer (matches desktop tabs) */
+  .drawer .nav-item { position: relative; }
+  .drawer .nav-item.active::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 8px;
+    height: 3px;
+    background: linear-gradient(90deg, #5fa92a 0%, #6BA82C 100%);
+    border-radius: 2px;
+  }
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1100; }
+
+/* TopNav / active states */
+.topnav-btn { color: #fff; background: transparent; padding: 0; }
+.topnav-btn.active { background: transparent; }
+
+/* On mobile, highlight active item with a light green tone */
+@media (max-width: 768px) {
+  /* selected item: very transparent white over the green background */
+  .drawer .nav-item.active, .drawer .nav-item.selected { background: rgba(255,255,255,0.08); color: #fff; }
+  .topnav-btn.active { background: transparent; }
+}
+
+  /* Hide desktop menu on small screens (we keep .desktop class to control this) */
+  @media (max-width: 768px) {
+    .navbar-links.desktop { display: none; }
+  }
+
+  /* Ensure drawer only used on small screens */
+  @media (min-width: 769px) {
+    .drawer, .drawer-backdrop { display: none; }
+  }
+
+h1, h2 {
+  color: #333;
+}
+
+/* Título de boas-vindas do Dashboard - responsivo */
+.container h1.text-center { font-size: 1.8rem; }
+@media (max-width: 768px) { .container h1.text-center { font-size: 1.5rem; } }
+@media (max-width: 480px) { .container h1.text-center { font-size: 1.3rem; } }
+
+/*botões */
+.btn {
+  border-radius: 20px;
+  background-color: #6BA82C;
+  border: none;
+  color: #fff;
+  margin: 5px;
+  padding: 10px 20px;
+}
+
+.btn:hover {
+  background-color: #5c9126;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+}
+
+/* inputs e textos */
+input,
+textarea {
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  padding: 10px;
+  outline: none;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #6BA82C;
+}
+
+/* Filter inputs (select/date) should match the login input visual style */
+.filter-input {
+  border-radius: 6px;
+  border: 1px solid rgba(139,195,74,0.35);
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  outline: none;
+  background: #ffffff;
+}
+.filter-input:focus {
+  border-color: #8BC34A;
+  box-shadow: 0 6px 18px rgba(139,195,74,0.08);
+}
+
+/* grade de eventos */
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(288px, 1fr));
+  grid-auto-rows: minmax(120px, auto); /* permitir que blocos cresçam conforme conteúdo */
+  gap: 15px; /* espaçamento uniforme entre os blocos */
+  padding: 20px;
+  box-sizing: border-box; /* inclui o padding e o border no cálculo da largura e altura */
+  width: 100%;
+  /* Removido scroll interno e limite de altura para que a página role normalmente */
+}
+
+/* Members page tweaks: ensure info column can shrink and actions are vertically centered */
+.user-members-page .list-group-item { align-items: center; }
+.user-members-page .list-group-item .member-info { min-width: 0; flex: 1 1 auto; }
+.user-members-page .list-group-item .member-info strong { display: inline-block; }
+.user-members-page .list-group-item .member-action { flex: 0 0 auto; margin-left: 12px; display: flex; align-items: center; }
+
+/* Increase vertical spacing between the two member blocks when stacked on small screens */
+.user-members-page .members-block { margin-bottom: 18px; }
+@media (max-width: 767px) {
+  .user-members-page .members-block { margin-bottom: 28px; }
+}
+
+/* Make small action buttons a bit taller for better tap targets */
+.user-members-page .btn-sm { padding: 6px 10px; }
+
+/* Titles: make block titles at least as large as list item names */
+.user-members-page .members-block h5 { font-size: 1.05rem; font-weight: 600; margin: 0; }
+.user-members-page .members-block h5 .count { font-size: 0.95rem; font-weight: 500; margin-left: 8px; color: #6c757d; }
+
+/* Ensure action buttons align to the right edge consistently */
+.user-members-page .list-group { gap: 6px; }
+.user-members-page .list-group-item { display: flex; align-items: center; padding-left: 14px; padding-right: 14px; }
+.user-members-page .list-group-item .member-info { min-width: 0; flex: 1 1 auto; }
+.user-members-page .list-group-item .member-action { flex: 0 0 120px; display: flex; align-items: center; justify-content: flex-end; }
+
+/* If buttons overflow on very small screens, allow action column to shrink less but wrap buttons vertically */
+@media (max-width: 420px) {
+  .user-members-page .list-group-item { padding-left: 10px; padding-right: 10px; }
+  .user-members-page .list-group-item .member-action { flex: 0 0 100px; }
+  .user-members-page .list-group-item .member-action .btn { white-space: nowrap; }
+}
+
+/* Responsividade para a grade de eventos */
+@media (max-width: 1200px) {
+  .event-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .event-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .event-grid {
+    grid-template-columns: 1fr; /* Uma coluna em telas muito pequenas */
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .event-card {
+    width: 100%;
+    min-height: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 5px;
+  }
+  
+  .event-grid {
+    padding: 5px;
+    gap: 6px;
+  }
+  
+  .navbar {
+    padding: 10px;
+  }
+}
+
+/* blocos de evento */
+.event-card {
+  border-radius: 10px;
+  width: 100%; /* let grid define size */
+  height: 100%; /* let grid define size */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  color: #fff;
+  text-align: left;
+  overflow: hidden;
+  position: relative;
+  padding: 12px; /* espaçamento interno menor para mais conteúdo */
+  box-sizing: border-box; /* inclui o padding e o border no cálculo da largura e altura */
+}
+
+/* blocos de evento placeholders - apenas para admin */
+.event-card-placeholder {
+  background-color: transparent; 
+  border: 2px dashed #E0E0E0;
+  opacity: 0.3;
+}
+
+/* Compact filter control: styles used by Dashboard */
+.date-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+  position: relative; /* container for absolute panel */
+}
+
+.date-filter-wrapper {
+  display: block; /* wrapper for toggle + panel */
+}
+
+/* Type filter chips (moved from navbar into date filter area) */
+/* Legacy type chips (no longer shown when panel is expanded). Kept for backward compatibility */
+.type-filters {
+  display: none; /* hide chips to avoid duplication; the select in panel replaces them */
+}
+.type-chip { display: none; }
+
+/* The panel appears as a subtle overlay so it doesn't push other content */
+
+/* User profile sidebar styling */
+.user-profile .list-group-item {
+  border-radius: 8px;
+  margin-bottom: 8px;
+  color: #333;
+  background: #fff;
+  border: 1px solid #e9ecef;
+}
+.user-profile .list-group-item.active {
+  background: linear-gradient(90deg, #5fa92a 0%, #6BA82C 100%); /* green */
+  color: #fff;
+  border-color: #5fa92a;
+  box-shadow: 0 6px 18px rgba(107,168,44,0.12);
+  position: relative;
+}
+.user-profile .list-group-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  background: #3f7f1a; /* darker left accent */
+  border-radius: 4px;
+}
+.user-profile h3 { margin-top: 4px; }
+
+/* Ensure sidebar stacks above content in very small screens */
+@media (max-width: 767px) {
+  .user-profile .list-group-item { display: inline-block; width: 48%; margin-right: 4%; }
+  .user-profile .list-group-item:nth-child(2n) { margin-right: 0; }
+  .user-profile .list-group { display: flex; flex-wrap: wrap; gap: 8px; }
+}
+
+/* Top tabs styling for UserProfile */
+.user-tabs { border-bottom: 1px solid #e9ecef; display: flex; gap: 32px; margin-bottom: 18px; }
+.user-tabs .nav-link { border: none; padding: 12px 6px; color: #6c757d; background: transparent; border-radius: 0; font-weight: 600; font-size: 15px; }
+.user-tabs .nav-link:hover { color: #495057; }
+.user-tabs .nav-link.active { color: #212529; position: relative; }
+.user-tabs .nav-link.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; background: linear-gradient(90deg, #5fa92a 0%, #6BA82C 100%); border-radius: 2px; }
+
+/* Sliding underline used by UserProfile tabs (animated on mobile and desktop) */
+.user-tabs { position: relative; }
+.user-tabs-underline {
+  position: absolute;
+  bottom: -6px;
+  height: 3px;
+  background: linear-gradient(90deg, #5fa92a 0%, #6BA82C 100%);
+  border-radius: 2px;
+  transition: left 220ms cubic-bezier(.2,.9,.2,1), width 220ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease;
+  will-change: left, width, opacity;
+}
+
+@media (max-width: 768px) {
+  /* increase underline bottom offset on small screens if tabs are taller */
+  .user-tabs-underline { bottom: -8px; height: 3px; }
+}
+
+@media (max-width: 576px) {
+  .user-tabs { gap: 12px; overflow-x: auto; }
+  .user-tabs .nav-link { padding: 12px 8px; white-space: nowrap; }
+}
+
+/* Extra spacing between tabs and content for UserProfile */
+.user-profile .card { margin-top: 8px; }
+.user-profile .card .card-body { padding: 18px; }
+.date-filter-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.98);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  margin-right: 0;
+  z-index: 60;
+  white-space: nowrap;
+  min-width: 420px; /* ensure horizontal layout */
+}
+
+/* Static variant: rendered in-flow and pushes content below */
+.date-filter-panel.static {
+  position: relative; /* normal document flow */
+  top: auto;
+  right: auto;
+  width: 100%;
+  background: #ffffff; /* keep it visible against page */
+  padding: 12px 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  border-radius: 10px;
+  margin-bottom: 12px; /* space between panel and event grid */
+  white-space: normal;
+}
+
+/* Dashboard adjustments for 'responsável' (guardian) view: bring the "viewingAs" subtitle
+   closer to the welcome heading and farther from the filter controls for better visual grouping. */
+.responsavel-dashboard .viewing-as {
+  color: #6c757d;
+  margin: 2px 0 24px; /* reduce top gap to bring subtitle closer to welcome */
+  font-size: 0.98rem;
+}
+
+/* Slightly reduce spacing on small screens to save vertical space */
+@media (max-width: 576px) {
+  .responsavel-dashboard .viewing-as { margin: 2px 0 18px; font-size: 0.95rem; }
+}
+
+.filter-toggle-text {
+  color: #fff; /* in navbar it's on green background */
+}
+.navbar .filter-toggle-text { color: #fff; }
+
+.filter-toggle-text { color: #333; }
+.filter-arrow { transition: transform 0.18s ease; font-size: 0.85em; margin-left: 4px; }
+
+/* ManagePermissions improved list styles */
+.perm-list { display: flex; flex-direction: column; gap: 12px; }
+.perm-row { border-radius: 12px; padding: 0; overflow: hidden; background: #ffffff; border: 1px solid rgba(0,0,0,0.04); }
+.perm-row .card-body { padding: 12px 14px; }
+.perm-row .perm-content { padding-left: 6px; }
+.perm-left { display: none; }
+.perm-title { font-size: 1rem; font-weight: 700; color: #213f1e; }
+.perm-summary { color: #6c757d; }
+.perm-switches .form-check { display: flex; align-items: center; gap: 6px; }
+.perm-actions { min-width: 140px; }
+
+@media (max-width: 767px) {
+  .perm-row .card-body { padding: 10px; }
+  .perm-left { display: none; }
+  .perm-actions { width: 100%; display: flex; gap: 8px; justify-content: space-between; }
+  .perm-switches { gap: 8px; }
+  .perm-row { background: #fff; }
+}
+
+/* subtle hover and focus */
+.perm-row:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+.filter-arrow.open { transform: rotate(180deg); }
+
+
+/* make the inputs compact inside the overlay */
+.date-filter-panel label {
+  font-size: 0.9em;
+  margin-right: 6px;
+}
+.date-filter-panel input[type="date"] {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #fff;
+  min-width: 150px;
+}
+
+@media (max-width: 768px) {
+  /* On narrower screens the overlay becomes full-width below the button */
+  .date-filter-panel {
+    position: static;
+    top: auto;
+    right: auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+    gap: 8px;
+  }
+  .date-filter-row { align-items: flex-start; }
+  .date-filter-panel input[type="date"] { max-width: 48%; }
+  .type-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+}
+
+@media (max-width: 480px) {
+  .date-filter-panel.static {
+    padding: 10px;
+  }
+  .date-filter-panel.static > div { flex-direction: column; gap: 8px; }
+  .date-filter-panel.static .form-select, .date-filter-panel.static input[type="date"] { width: 100%; }
+  .date-filter-panel.static .btn { width: 100%; }
+}
+
+/* On very small screens stack the controls vertically so they remain usable */
+@media (max-width: 480px) {
+  .date-filter-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-width: auto;
+    background: rgba(255,255,255,0.98);
+    padding: 8px;
+  }
+  .date-filter-panel .form-select, .date-filter-panel input[type="date"] {
+    width: 100%;
+    min-width: 0;
+  }
+  .date-filter-panel .btn { width: 100%; }
+}
+
+/* Compact summary shown when panel is closed: small inline badge with date range or "Próximos" */
+.date-filter-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+  color: #333;
+  background: rgba(255,255,255,0.06);
+  padding: 4px 8px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+
+/* Make action buttons clearer inside the panel */
+.date-filter-panel .btn-sm.btn-light {
+  background: #6BA82C;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.date-filter-panel .btn-sm.btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+/* bloco de adicionar evento para admin */
+.event-card-add {
+  background-color: #6BA82C; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.add-event-content span {
+  color: #fff;
+}
+
+.event-card-add:hover {
+  background-color: #5c9126;
+}
+
+/* ícones de edição e exclusão */
+.icon-buttons {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+
+.icon-button {
+  color: #fff;
+  background: rgba(0,0,0,0.12);
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.icon-buttons .icon-button:hover {
+  opacity: 0.8;
+}
+
+/* textos dos eventos */
+.event-card .card-title, .event-card .card-text, .event-card p {
+  color: #fff; 
+  margin: 0;
+  padding: 5px 0;
+  overflow-wrap: anywhere; /* avoid clipping long words */
+}
+
+/* Ajusta o espaçamento dentro dos blocos de evento */
+.event-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  height: 100%;
+  gap: 6px;
+}
+
+.event-card .card-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.event-card .card-text {
+  font-size: 0.95rem;
+  line-height: 1.2;
+  max-height: 3.6rem; /* limit for description area */
+  overflow: hidden;
+}
+
+/* New: compact date/time and smaller muted location for event cards */
+.event-datetime {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  margin: 0;
+  padding: 4px 0 0 0;
+}
+
+.event-local {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.88);
+  opacity: 0.9;
+  margin: 0;
+  padding: 2px 0 0 0;
+}
+
+/* botões de paginação */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px; 
+  margin-bottom: 40px; 
+}
+
+.pagination button {
+  background-color: #6BA82C;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  margin: 0 10px; 
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.pagination button:hover {
+  background-color: #5c9126;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Estilos para a página de cadastro de eventos */
+.cadastro-evento-header-icon {
+  /* animation removed to avoid layout shifts/scroll */
+}
+
+/* Layout for Cadastro Evento: white card, left aligned, full available width */
+.cadastro-evento-container {
+  display: flex;
+  flex-direction: column; /* stack header above card */
+  justify-content: flex-start; /* left aligned vertically */
+  align-items: stretch; /* allow header and card to take full width */
+  min-height: calc(100vh - 80px); /* leave space for navbar */
+  padding: 24px; /* vertical + horizontal margins controlled here */
+  box-sizing: border-box;
+  background: transparent;
+  width: 100%;
+}
+
+.cadastro-evento-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(33,37,41,0.06);
+  width: 100%; /* occupy full width of the page container (respecting .cadastro-evento-container padding) */
+  max-width: none;
+  padding: 16px 28px; /* reduce top padding so title is closer to card top */
+  box-sizing: border-box;
+  color: #213f1e;
+  margin: 0;
+}
+
+.cadastro-evento-card h2, .cadastro-evento-card p {
+  text-align: left;
+}
+
+/* On very small screens keep spacing comfortable */
+@media (max-width: 768px) {
+  .cadastro-evento-container { padding: 12px; min-height: auto; }
+  .cadastro-evento-card { padding: 18px; border-radius: 10px; }
+}
+
+/* Make the inner bootstrap container-fluid not add extra horizontal padding
+   so the card width is controlled by .cadastro-evento-container padding only */
+.cadastro-evento-container .container-fluid {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 992px) {
+  .cadastro-evento-card {
+    width: 100%;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 0;
+  }
+}
+
+/* Make inputs/selects/textarea inside the cadastro card expand to fill the card width
+   and ensure column gutters are reasonable so inputs visually span the available space */
+.cadastro-evento-card .form-control,
+.cadastro-evento-card .form-select,
+.cadastro-evento-card textarea {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* reduce header spacing inside the card so title sits closer to the top */
+.cadastro-evento-card .card-body > .mb-4 {
+  margin-top: 0.25rem; /* small top gap */
+  margin-bottom: 0.5rem; /* tighten bottom gap */
+}
+
+.cadastro-evento-card .card-body h2 {
+  margin-top: 0; /* ensure no extra top margin */
+}
+
+/* Page header (title outside card) */
+.cadastro-evento-page-header {
+  width: 100%;
+  padding: 6px 12px 0 12px; /* match container small horizontal padding */
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+.cadastro-evento-page-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #213f1e;
+}
+.cadastro-evento-page-header p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+.cadastro-evento-card .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.cadastro-evento-card [class*="col-"] {
+  /* remove extra column padding so inputs in rows align with standalone inputs */
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Light-gray boxed section used in publico-alvo and now for data
+   Make it visually identical to .cadastro-evento-checkbox-group so it stays
+   inside the white card and aligns with other boxed sections. */
+.cadastro-evento-box {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+  box-sizing: border-box;
+  width: 100%;
+  display: block;
+  margin: 0 0 0.75rem 0; /* no horizontal margin so it sits inside the white card */
+}
+.cadastro-evento-box .form-check { margin-top: 8px; }
+.cadastro-evento-box .d-flex { gap: 12px; }
+
+/* Keep the two radio options (Data única / Período) on a single line */
+.cadastro-evento-box > .d-flex:first-child {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap; /* prevent wrap so both radios stay in one line on larger screens */
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+.cadastro-evento-box > .d-flex:first-child .form-check { margin-bottom: 0; }
+
+@media (max-width: 576px) {
+  /* On small screens allow stacking for usability */
+  .cadastro-evento-box > .d-flex:first-child {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+.cadastro-evento-box .form-control,
+.cadastro-evento-box .form-select,
+.cadastro-evento-box input[type="date"],
+.cadastro-evento-box input[type="time"] {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  box-sizing: border-box;
+}
+.cadastro-evento-box .d-flex > .form-control,
+.cadastro-evento-box .d-flex > input[type="date"],
+.cadastro-evento-box .d-flex > input[type="time"] {
+  /* make date/time inputs compact inside the gray box while keeping the box full width */
+  flex: 0 0 auto;
+  width: auto; /* don't force 100% from global rule */
+  max-width: 240px; /* default compact width */
+}
+.cadastro-evento-box .d-flex > input[type="time"] {
+  max-width: 140px; /* time input smaller */
+}
+
+@media (max-width: 576px) {
+  /* on small screens stack the controls and let inputs be full width for usability */
+  .cadastro-evento-box .d-flex {
+    flex-direction: column;
+  }
+  .cadastro-evento-box .d-flex > .form-control,
+  .cadastro-evento-box .d-flex > input[type="date"],
+  .cadastro-evento-box .d-flex > input[type="time"] {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+  }
+}
+.cadastro-evento-checkbox-group { margin-bottom: 0.75rem; }
+
+/* If you want every input to be a full line regardless of column classes, uncomment below
+   .cadastro-evento-card .col-sm-6, .cadastro-evento-card .col-md-6 { width: 100%; flex: 0 0 100%; max-width: 100%; }
+*/
+
+.cadastro-evento-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+  padding: 12px 24px; /* aumentar margem lateral para maior respiro */
+  overflow-y: auto; /* Garantir scroll vertical */
+}
+
+.cadastro-evento-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.98);
+  margin: 0; /* ocupar toda a largura do container (com a pequena margem definida pelo padding do container) */
+  max-width: none;
+  width: 100%;
+  padding: 6px 10px; /* padding interno um pouco menor conforme solicitado */
+}
+
+/* Override utility padding like .p-4 to ensure consistent inner spacing */
+.cadastro-evento-card .card-body.p-4,
+.cadastro-evento-card .card-body {
+  padding: 2.25rem 1.75rem !important;
+}
+
+.cadastro-evento-input,
+.form-select.cadastro-evento-input {
+  border: 1px solid rgba(139,195,74,0.35);
+  border-radius: 6px;
+  padding: 0.9rem 1rem;
+  font-size: 16px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  background-color: #fff;
+}
+
+.cadastro-evento-input:focus,
+.form-select.cadastro-evento-input:focus {
+  border-color: #8BC34A;
+  box-shadow: 0 6px 18px rgba(139,195,74,0.08);
+  background-color: #fff;
+}
+
+.cadastro-evento-textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.cadastro-evento-btn-primary {
+  background: #8BC34A;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.55rem 0;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background 0.15s ease;
+}
+
+.cadastro-evento-btn-primary:hover { background: #76b33a; }
+
+.cadastro-evento-btn-primary:disabled { background: #dee2e6; }
+
+.cadastro-evento-btn-secondary {
+  border: 1px solid #6c757d;
+  border-radius: 20px;
+  padding: 0.45rem 0;
+  font-weight: 600;
+  font-size: 15px;
+  color: #6c757d;
+  background: transparent;
+}
+
+.cadastro-evento-btn-secondary:hover { background-color: #6c757d; color: white; }
+
+.cadastro-evento-checkbox-group {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.cadastro-evento-checkbox {
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.cadastro-evento-checkbox:hover {
+  border-color: #6BA82C;
+  box-shadow: 0 2px 8px rgba(107, 168, 44, 0.1);
+}
+
+.cadastro-evento-checkbox .form-check-input:checked {
+  background-color: #6BA82C;
+  border-color: #6BA82C;
+}
+
+.cadastro-evento-checkbox .form-check-label {
+  font-weight: 500;
+  color: #495057;
+  margin-left: 8px;
+}
+
+.cadastro-evento-settings {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid #e9ecef;
+}
+
+.form-check-input:checked {
+  background-color: #6BA82C;
+  border-color: #6BA82C;
+}
+
+.form-check-input:focus {
+  border-color: #6BA82C;
+  box-shadow: 0 0 0 0.25rem rgba(107, 168, 44, 0.25);
+}
+
+.form-label {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 12px; /* mais espaço entre label e campo */
+}
+
+/* Ensure helper/description small text appears below the label inside the cadastro card
+   (some layouts previously rendered it side-by-side). Make it visibly separate and full width.) */
+.cadastro-evento-card .form-label + small,
+.cadastro-evento-card label + small,
+.cadastro-evento-card .form-label + .text-muted {
+  display: block;
+  margin-top: 4px;
+  margin-bottom: 0.75rem;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+/* Aumentar espaçamento vertical dos blocos dentro do card para melhor leitura */
+.cadastro-evento-card .mb-4 {
+  margin-bottom: 1.25rem !important;
+}
+
+/* Give extra breathing room for small helper texts and header inside card */
+.cadastro-evento-card .text-muted,
+.cadastro-evento-card .form-text {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.cadastro-evento-card .text-center.mb-4 {
+  margin-top: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.form-label i {
+  color: #6BA82C;
+}
+
+.alert {
+  border-radius: 12px;
+  border: none;
+  padding: 16px 20px;
+  font-weight: 500;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsividade melhorada para a página de cadastro */
+@media (max-width: 1200px) {
+  .cadastro-evento-container {
+    padding: 2rem 1.25rem;
+  }
+  .cadastro-evento-card { margin: 1.75rem auto; }
+  .cadastro-evento-card .card-body { padding: 2rem 1.5rem; }
+}
+
+@media (max-width: 992px) {
+  .cadastro-evento-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .cadastro-evento-card {
+    margin: 0 0.25rem;
+    border-radius: 15px;
+  }
+  
+  .cadastro-evento-card .card-body {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .cadastro-evento-container {
+    padding: 1rem 0.75rem;
+  }
+  
+  .cadastro-evento-card {
+    margin: 0 0.15rem;
+    border-radius: 12px;
+  }
+  
+  .cadastro-evento-card .card-body {
+    padding: 1.75rem 1.25rem;
+  }
+  
+  .cadastro-evento-checkbox-group {
+    padding: 12px;
+  }
+  
+  .cadastro-evento-checkbox {
+    margin-bottom: 10px;
+    padding: 10px 14px;
+  }
+  
+  /* Melhorar layout dos botões no mobile */
+  .row .col-6 {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+/* Buttons row: align Cancel left and Save right on one line; stack on small screens */
+.buttons-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between; /* push buttons to the extremes */
+  flex-wrap: nowrap;
+  flex-direction: row; /* ensure row layout on desktop */
+}
+  .buttons-row .col-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+  min-width: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+  display: flex;
+  align-items: center;
+}
+  .buttons-row .col-6:first-child { justify-content: flex-start; }
+  .buttons-row .col-6:last-child { justify-content: flex-end; }
+.buttons-row .btn {
+  box-sizing: border-box;
+  width: auto; /* let buttons size to their content */
+  min-width: 120px; /* ensure tappable target, match login button */
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* On very small screens stack buttons vertically with full width */
+@media (max-width: 576px) {
+  .buttons-row { flex-direction: column; gap: 8px; align-items: stretch; }
+  .buttons-row .col-6 { width: 100%; padding-left: 0; padding-right: 0; display: block; }
+  .buttons-row .btn { width: 100%; height: 46px; }
+}
+
+/* Slightly reduce button horizontal padding so icons/text fit without wrapping */
+.cadastro-evento-btn-primary, .cadastro-evento-btn-secondary { padding-left: 12px; padding-right: 12px; }
+}
+
+@media (max-width: 576px) {
+  .cadastro-evento-container {
+    padding: 0.5rem 0.35rem;
+  }
+  
+  .cadastro-evento-card .card-body {
+    padding: 1.25rem 0.6rem;
+  }
+  
+  .cadastro-evento-input,
+  .cadastro-evento-textarea,
+  .form-select.cadastro-evento-input {
+    font-size: 16px; /* Evita zoom no iOS */
+    padding: 10px 14px;
+  }
+  
+  .cadastro-evento-btn-primary,
+  .cadastro-evento-btn-secondary {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 25px;
+  }
+  
+  .cadastro-evento-checkbox {
+    padding: 8px 10px;
+  }
+  
+  .cadastro-evento-checkbox-group {
+    padding: 10px;
+  }
+  
+  .cadastro-evento-settings {
+    padding: 12px 16px;
+  }
+  
+  /* Ajustar espaçamento dos campos no mobile */
+  .mb-4 {
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Tornar header mais compacto no mobile */
+  .cadastro-evento-header-icon {
+    margin-bottom: 1rem !important;
+  }
+  
+  .cadastro-evento-header-icon i {
+    font-size: 2rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cadastro-evento-container {
+    padding: 0.35rem 0.2rem;
+  }
+  
+  .cadastro-evento-card .card-body {
+    padding: 1rem 0.6rem;
+  }
+  
+  .cadastro-evento-btn-primary,
+  .cadastro-evento-btn-secondary {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .form-label {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .form-text {
+    font-size: 11px;
+  }
+}
+
+/* Melhorar responsividade da navbar */
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+  
+  .navbar a {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .navbar a {
+    margin: 5px 0;
+    display: block;
+  }
+}
+
+/* Melhorias de responsividade para Login e formulários gerais */
+.centered-form {
+  min-height: 100vh;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* Login page styling to match prototype */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-logo {
+  max-width: 260px;
+  height: auto;
+  display: block;
+  margin: 0 auto 40px; /* centered horizontally, small bottom spacing */
+}
+.login-card { background: transparent; border: none; }
+.login-card .card-body { padding: 22px; background: transparent; }
+.login-label { color: #6BA82C; font-weight: 700; }
+.form-control-login {
+  border: 2px solid rgba(107,168,44,0.45);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: none;
+}
+.form-control-login:focus { box-shadow: 0 6px 18px rgba(107,168,44,0.08); border-color: #6BA82C; }
+.login-btn {
+  background-color: #6BA82C;
+  color: #fff;
+  border: none;
+  padding: 8px 28px;
+  border-radius: 999px;
+  min-width: 110px;
+  box-shadow: 0 6px 18px rgba(107,168,44,0.12);
+}
+.login-btn:hover { background-color: #5c9126; }
+
+/* Password toggle inside password field */
+.password-wrapper { position: relative; }
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent; /* no colored bubble */
+  border: none;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  cursor: pointer;
+  color: #6c757d; /* grey icon like prototype */
+}
+.password-toggle svg { display: block; }
+.password-toggle:focus { outline: none; box-shadow: 0 0 0 4px rgba(107,168,44,0.08); }
+
+/* Password input style: match registration inputs but keep room for the toggle */
+.password-wrapper .form-control { border: 1px solid #eee; background: #fff; padding-right: 48px; height: 46px; }
+.password-wrapper .form-control::placeholder { color: #9aa79a; }
+
+/* Center the login card and ensure consistent width like other pages */
+.login-card { max-width: 520px; margin: 0 auto; }
+.login-card .card-body { padding: 28px; }
+
+/* Increase spacing between password input and submit button */
+.login-card .btn-custom-primary {
+  margin: 36px auto 0; /* spacing above and keep centered */
+  display: inline-block; /* keep original size */
+  padding: 12px 30px; /* original padding for button size */
+  box-sizing: border-box;
+}
+
+/* Responsive sizing: smaller on mobile, slightly larger on wide screens */
+@media (max-width: 576px) {
+  .login-card .btn-custom-primary {
+    padding: 10px 20px;
+    min-width: 140px;
+  }
+}
+
+@media (min-width: 992px) {
+  .login-card .btn-custom-primary {
+    padding: 12px 36px;
+    min-width: 180px;
+  }
+}
+
+/* Ensure the submit wrapper centers the inline-block button reliably */
+.login-card .login-submit {
+  text-align: center;
+}
+
+/* Extra spacing between username field and password label in login form */
+.login-card .username-field {
+  margin-bottom: 20px; /* slightly reduced gap between username input and password label */
+}
+
+/* Keep green border and subtle green shadow when login inputs are focused
+   (matches the registration form focus style). Scoped to login card so it
+   doesn't unexpectedly override other components.) */
+.login-card .form-control:focus,
+.login-card .form-select:focus,
+.login-card .password-wrapper .form-control:focus {
+  border: 2px solid #6BA82C; /* same thickness and color as registration inputs */
+  outline: none;
+}
+
+/* Ensure the eye icon svg is sized and centered inside the input */
+.password-toggle svg { width: 20px; height: 20px; display: block; }
+.password-toggle { padding: 0; }
+
+
+/* Make the card area subtle and centered on very large screens */
+@media (min-width: 1400px) {
+  .login-card .card-body { max-width: 420px; margin: 0 auto; background: rgba(255,255,255,0.0); }
+}
+
+.centered-form .col-md-4 {
+  max-width: 400px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .centered-form {
+    padding: 0.5rem;
+  }
+  
+  .centered-form .col-md-4 {
+    max-width: none;
+    padding: 0.5rem;
+  }
+  
+  .centered-form h1 {
+    font-size: 1.75rem;
+    margin: 1.5rem 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .centered-form {
+    padding: 0.25rem;
+  }
+  
+  .centered-form .col-md-4 {
+    padding: 0.25rem;
+  }
+  
+  .centered-form h1 {
+    font-size: 1.5rem;
+    margin: 1rem 0;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .btn-block {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+}
+
+/* Melhorar responsividade geral dos inputs */
+.form-control {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px; /* Evitar zoom no iOS */
+  padding: 12px;
+}
+
+@media (max-width: 576px) {
+  .form-control {
+    font-size: 16px;
+    padding: 10px;
+  }
+}
+
+/* Garantir que modais sejam responsivos */
+.modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* Melhorar scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6BA82C;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5c9126;
+}
+
+/* Para Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #6BA82C #f1f1f1;
+}
+
+/* ===== ESTILOS PARA PÁGINA DE GERENCIAR GRUPOS ===== */
+
+/* Hover effect para cards de grupos */
+.hover-shadow {
+  transition: all 0.3s ease;
+}
+
+.hover-shadow:hover {
+  /* Removed translate to avoid pushing layout/scrolling */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Estilo para dropdown sem seta */
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+/* Cards de grupos melhorados */
+.group-card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+
+.group-card:hover {
+  /* Removed translate to avoid layout shifts */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.group-card .card-body { padding: 16px; }
+.group-card .card-footer { background: transparent; border-top: none; }
+
+/* Badges coloridos para tipos de grupo */
+.badge-turma { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+.badge-turno { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+.badge-area { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+.badge-curso { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+.badge-custom { background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+
+/* Modal melhorado */
+.modal-content-custom {
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.18);
+  background-color: #ffffff;
+  overflow: hidden; /* keep rounded corners when content scrolls */
+}
+
+.modal-header-custom {
+  background: linear-gradient(135deg, #6BA82C, #5c9126);
+  color: white;
+  border-radius: 20px 20px 0 0;
+  border: none;
+}
+
+/* Improve spacing inside modal content */
+.modal-content-custom .card-header {
+  padding: 10px 14px 10px 20px; /* reduzir altura e dar espaçamento à esquerda */
+  display: flex;
+  align-items: center; /* garantir centralização vertical do conteúdo */
+  position: relative; /* permite posicionar o botão X de forma absoluta no canto direito */
+}
+.modal-content-custom .card-body {
+  padding: 22px 22px; /* mais espaçamento interno (mantém leitura) */
+}
+.modal-content-custom .card-footer {
+  padding: 12px 20px;
+  background: transparent;
+}
+
+/* Slightly reduce padding on very small screens while keeping spacing comfortable */
+@media (max-width: 420px) {
+  .modal-content-custom .card-body { padding: 14px 16px; }
+  .modal-content-custom .card-header { padding: 10px 14px; }
+  .modal-content-custom .card-footer { padding: 10px 12px; }
+}
+
+/* Edit modal header title larger and close X button style */
+.modal-content-custom .card-header h5 {
+  font-size: 1.05rem; /* reduzido um pouco conforme solicitado */
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center; /* garantir ícone e texto alinhados */
+  gap: 8px;
+}
+
+.modal-content-custom .close-x {
+  position: absolute; /* coloca o botão no canto direito da modal */
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent; /* sem fundo */
+  color: #fff; /* X branco */
+  border: none;
+  border-radius: 8px;
+  width: 44px; /* maior tocável */
+  height: 44px; /* maior tocável */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px; /* X maior */
+  line-height: 1;
+  box-shadow: none;
+  cursor: pointer;
+  z-index: 5; /* garantir sobreposição acima do header */
+}
+
+.modal-content-custom .close-x:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.12); /* foco leve branco */
+}
+
+.form-control-custom {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.form-control-custom:focus {
+  border-color: #6BA82C;
+  box-shadow: 0 0 0 0.2rem rgba(107, 168, 44, 0.25);
+}
+
+/* Botões melhorados */
+.btn-custom-primary {
+  background: linear-gradient(135deg, #6BA82C, #5c9126);
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-custom-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(107, 168, 44, 0.3);
+}
+
+/* Make Bootstrap secondary buttons match our pill/size pattern (white cancel/back buttons) */
+.btn.btn-secondary,
+.btn-secondary {
+  background: white;
+  color: #495057;
+  border-radius: 25px;
+  padding: 12px 30px;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.btn.btn-secondary:hover,
+.btn-secondary:hover {
+  background: #f6f6f6;
+  color: #333;
+  transform: translateY(-1px);
+}
+
+/* Small secondary buttons (btn-sm) should be compact but keep pill radius */
+.btn-sm.btn-secondary,
+.btn-secondary.btn-sm {
+  padding: 6px 12px;
+  border-radius: 18px;
+}
+
+/* Estatísticas dos grupos */
+.group-stats {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+/* Fix member list overlap in group modal */
+.card .list-group .list-group-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card .list-group .list-group-item {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.card .list-group .list-group-item > div {
+  flex: 1 1 auto; /* allow info block to grow */
+  min-width: 0; /* enable text truncation/wrapping inside flex */
+}
+
+/* Members page blocks */
+.members-block { background: #ffffff; border: 1px solid rgba(0,0,0,0.04); border-radius: 10px; }
+.members-block .card-body { padding: 12px; }
+.members-block .list-group { margin-top: 6px; }
+.members-block .form-control { border-radius: 8px; }
+.card .list-group .list-group-item small {
+  display: block;
+  white-space: normal;
+  word-break: break-word;
+}
+.card .list-group .list-group-item .btn {
+  flex: 0 0 auto; /* prevent button from shrinking */
+  margin-left: 8px;
+}
+
+/* Animações suaves */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  /* Disabled global fadeInUp on form pages to avoid content jumping/scrolling */
+  animation: none;
+}
+
+/* Responsividade para grupos */
+@media (max-width: 768px) {
+  .group-card {
+    margin-bottom: 1rem;
+  }
+  
+  .modal-lg {
+    max-width: 90%;
+  }
+  
+  .btn-custom-primary {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Scroll customizado para modals */
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #6BA82C;
+  border-radius: 3px;
+}
+
+
+/* Increase spacing between group cards (white blocks) */
+.row > .col-md-6 > .group-card,
+.row > .col-lg-4 > .group-card {
+  margin-bottom: 1.25rem;
+}
+
+/* Neutral badge for group type (non-colored) */
+.badge-group-type {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+/* Better visual for the small select used in GerenciarGrupos filters */
+.filters-row .form-select.form-select-sm {
+  border-radius: 10px;
+  border: 1px solid #e6e9eb;
+  padding: 6px 34px 6px 10px; /* room for custom arrow */
+  background: #ffffff url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%236c757d' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  -webkit-appearance: none;
+  appearance: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+  font-size: 0.9rem;
+}
+.filters-row .form-select.form-select-sm:focus {
+  border-color: #cfe8c7;
+  box-shadow: 0 6px 18px rgba(107,168,44,0.08);
+  outline: none;
+}
+
+/* Match the small input visually with the select */
+.filters-row .form-control.form-control-sm {
+  border-radius: 10px;
+  border: 1px solid #e6e9eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #5c9126;
+}
+
+/* ===== FIM DOS ESTILOS DE GERENCIAR GRUPOS ===== */

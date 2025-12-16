@@ -27,8 +27,10 @@ const TopNav = () => {
       const userId = localStorage.getItem('user_id');
 
       if (token && userId) {
+        // Usuário autenticado: armazenar dados no state
         setUser({ id: userId });
       } else {
+        // Sem autenticação
         setUser(null);
       }
     } finally {
@@ -57,6 +59,16 @@ const TopNav = () => {
     );
   }
 
+  // Se não há usuário autenticado, renderizar navbar mínima
+  if (!user) {
+    return (
+      <nav className="navbar">
+        <IfsulLogoWhite className="navbar-logo" role="img" aria-label="IFSUL" />
+      </nav>
+    );
+  }
+
+  // Usuário autenticado: renderizar navbar completa
   return (
     <nav className="navbar">
       <span className="menu-icon" onClick={toggleMenu} aria-label="Abrir menu">&#9776;</span>

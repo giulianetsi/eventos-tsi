@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Button from './ui/Button';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -13,8 +13,8 @@ const ManageGroups = () => {
 	const [membrosModalIsOpen, setMembrosModalIsOpen] = useState(false);
 	const [editModalIsOpen, setEditModalIsOpen] = useState(false);
 	const [selectedGroup, setSelectedGroup] = useState(null);
-	const [membros, setMembros] = useState([]);
-	const [usuariosDisponiveis, setUsuariosDisponiveis] = useState([]);
+	const [membros] = useState([]);
+	const [usuariosDisponiveis] = useState([]);
   
 	// Estados do formulário
 	const [novoGrupo, setNovoGrupo] = useState({
@@ -43,29 +43,17 @@ const ManageGroups = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const groupsPerPage = 20;
 
-	useEffect(() => {
-		carregarGrupos();
-	}, []);
-
-	// reset page when filters or groups change
-	useEffect(() => {
-		setCurrentPage(1);
-	}, [searchName, filterType, grupos]);
-
-	const carregarGrupos = async () => {
+	const carregarGrupos = useCallback(async () => {
 		try {
 			setLoading(true);
 			const response = await api.get('/groups');
-
 			setGrupos(response.data);
 			console.log('carregarGrupos: received', Array.isArray(response.data) ? response.data.length : 0, 'groups');
 			if (Array.isArray(response.data)) console.log('carregarGrupos sample names:', response.data.slice(0,8).map(g => `${g.id}:${g.name}`));
 			return Array.isArray(response.data) ? response.data : [];
 		} catch (error) {
 			console.error('Erro ao carregar grupos:', error);
-			// Se a requisição autenticada falhar (401/403), tentar o endpoint público como fallback
 			if (error.response?.status === 401) {
-				// tentar endpoint público
 				try {
 					const pub = await api.get('/groups/public');
 					setGrupos(pub.data);
@@ -76,7 +64,6 @@ const ManageGroups = () => {
 					return null;
 				}
 			} else if (error.response?.status === 403) {
-				// tentar endpoint público também
 				try {
 					const pub = await api.get('/groups/public');
 					setGrupos(pub.data);
@@ -93,7 +80,17 @@ const ManageGroups = () => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [navigate]);
+
+	useEffect(() => {
+		carregarGrupos();
+	}, [carregarGrupos]);
+
+	// reset page when filters or groups change
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchName, filterType, grupos]);
+
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();

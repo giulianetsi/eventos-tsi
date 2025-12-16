@@ -4,7 +4,6 @@ import { ReactComponent as IfsulLogoWhite } from '../assets/ifsul-logo-white.svg
 import { FaCalendarPlus, FaUserPlus, FaUsers, FaUserShield, FaSignOutAlt, FaHome, FaUser } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import '../App.css';
-import { useEffect } from 'react';
 
 const TopNav = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,27 +17,6 @@ const TopNav = () => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
   const { logout } = useAuth();
-  const [displayName, setDisplayName] = React.useState(() => {
-    const fn = localStorage.getItem('user_first_name') || '';
-    const ln = localStorage.getItem('user_last_name') || '';
-    return fn ? `${fn}${ln ? ` ${ln}` : ''}` : '';
-  });
-
-  useEffect(() => {
-    const onUpdate = (e) => {
-      const d = e && e.detail ? e.detail : null;
-      if (d) {
-        const name = `${d.first_name || ''}${d.last_name ? ` ${d.last_name}` : ''}`.trim();
-        setDisplayName(name);
-      } else {
-        const fn = localStorage.getItem('user_first_name') || '';
-        const ln = localStorage.getItem('user_last_name') || '';
-        setDisplayName(fn ? `${fn}${ln ? ` ${ln}` : ''}` : '');
-      }
-    };
-    window.addEventListener('profileUpdated', onUpdate);
-    return () => window.removeEventListener('profileUpdated', onUpdate);
-  }, []);
 
   const toggleMenu = () => setMenuOpen(v => !v);
 

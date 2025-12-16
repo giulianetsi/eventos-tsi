@@ -23,7 +23,7 @@ const UserProfile = () => {
     phone: 'user_phone'
   };
 
-  const loadFromLocal = () => {
+  const loadFromLocal = React.useCallback(() => {
     const p = {
       first_name: localStorage.getItem(localKeys.first_name) || '',
       last_name: localStorage.getItem(localKeys.last_name) || '',
@@ -31,12 +31,12 @@ const UserProfile = () => {
       phone: localStorage.getItem(localKeys.phone) || ''
     };
     setProfile(p);
-  };
+  }, [localKeys.email, localKeys.first_name, localKeys.last_name, localKeys.phone]);
 
-  const fetchProfile = async () => {
+  const fetchProfile = React.useCallback(async () => {
     try {
       setLoading(true);
-  const resp = await api.get('/users/profile');
+      const resp = await api.get('/users/profile');
       if (resp && resp.data) {
         setProfile({
           first_name: resp.data.first_name || '',
@@ -48,7 +48,6 @@ const UserProfile = () => {
         loadFromLocal();
       }
     } catch (err) {
-      // se o backend retornar 404, usar fallback para localStorage
       const status = err && err.response ? err.response.status : null;
       console.warn('Erro ao carregar perfil (endpoint /user/profile). Status:', status);
       if (status === 404) {
@@ -62,13 +61,15 @@ const UserProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loadFromLocal]);
+
 
   useEffect(() => { 
-    fetchProfile(); 
+    fetchProfile();
     if ('Notification' in window) {
       setNotificationPermission(Notification.permission);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleNotifications = async (enable) => {

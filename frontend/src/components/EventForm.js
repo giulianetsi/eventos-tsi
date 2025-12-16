@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from './ui/Button';
 
 const EventForm = () => {
@@ -22,7 +22,7 @@ const EventForm = () => {
 
   // Estados relacionados à data/hora do evento.
   // Suporta data única ou período.
-  const [dataHorarioEvento, setDataHorarioEvento] = useState('');
+  // removido estado não utilizado: dataHorarioEvento
   const [dateMode, setDateMode] = useState('single'); // 'single' ou 'period'
   const [singleDate, setSingleDate] = useState(''); // formato YYYY-MM-DD para input date
   const [singleTime, setSingleTime] = useState(''); // formato HH:MM para input time (opcional)
@@ -154,7 +154,7 @@ const EventForm = () => {
         setScheduledNotificationDatetime(`${periodStart}T09:00`);
       }
     }
-  }, [singleDate, singleTime, periodStart, dateMode]);
+  }, [singleDate, singleTime, periodStart, dateMode, scheduledNotificationDatetime]);
 
   // Carregar grupos disponíveis do backend para popular a seção "Grupos"
   useEffect(() => {
@@ -188,10 +188,7 @@ const EventForm = () => {
 
   // Opções para público-alvo
   // Opções para definição de público (visibilidade)
-  const opcoesPublico = [
-    { value: 'publico', label: 'Público (visível para todos)' },
-    { value: 'privado', label: 'Privado (apenas para administradores)' }
-  ];
+  // removido opcoesPublico não utilizado
 
   const handlePublicoChange = (tipo) => {
     setPublicoAlvo(prev => {
@@ -385,7 +382,7 @@ const EventForm = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     window.dispatchEvent(new CustomEvent('evento-updated', { detail: { id: editingEvento.id } }));
       } else {
-        const response = await api.post('/events/add-event', {
+        await api.post('/events/add-event', {
           titulo: titulo.trim(),
           descricao: descricao.trim(),
           tipo,

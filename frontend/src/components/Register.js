@@ -68,7 +68,7 @@ const Register = () => {
       // 2) Enviar requisição para o endpoint de registro de usuário.
       // Usamos a instância `api` (axios) que já possui configuração de baseURL
       // e `withCredentials` para enviar cookies/sessões quando necessário.
-      const resp = await api.post('/users/register-user', payload);
+      await api.post('/users/register-user', payload);
 
       // Se a requisição tiver sucesso (status 2xx), prosseguimos com feedback
       setSuccessMessage('Usuário registrado com sucesso');

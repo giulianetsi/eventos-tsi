@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 
@@ -20,19 +20,15 @@ const GroupMembers = () => {
   const [membersQuery, setMembersQuery] = useState('');
   const [availableQuery, setAvailableQuery] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, [groupId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-  // tentar obter informações básicas do grupo se disponível; como fallback, listar grupos e buscar pelo id
+      // tentar obter informações básicas do grupo se disponível; como fallback, listar grupos e buscar pelo id
       try {
         const g = await api.get(`/groups/${groupId}`);
         setGroup(g.data);
       } catch (e) {
-  // fallback: se o backend não expõe GET /groups/:id, tentar GET /groups e localizar o grupo
+        // fallback: se o backend não expõe GET /groups/:id, tentar GET /groups e localizar o grupo
         try {
           const all = await api.get('/groups');
           const found = (all.data || []).find(gr => String(gr.id) === String(groupId));
@@ -47,22 +43,18 @@ const GroupMembers = () => {
         api.get(`/groups/${groupId}/available-users`),
       ]);
 
-      // Normalize members response: backend may return either an array
-      // or an object like { members: [...] } depending on endpoint.
       const normalizeArray = (resp) => {
         if (!resp) return [];
         const d = resp.data;
         if (Array.isArray(d)) return d;
         if (d && Array.isArray(d.members)) return d.members;
         if (d && Array.isArray(d.users)) return d.users;
-        // If payload itself is an object keyed by ids, convert to array
         if (d && typeof d === 'object') return Object.values(d);
         return [];
       };
 
       setMembers(normalizeArray(mResp));
       setAvailable(normalizeArray(aResp));
-  // resetar listas pendentes
       setToAdd(new Set());
       setToRemove(new Set());
     } catch (err) {
@@ -71,7 +63,12 @@ const GroupMembers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [groupId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
 
   const markAdd = (userId) => {
     setToAdd(prev => new Set(prev).add(userId));

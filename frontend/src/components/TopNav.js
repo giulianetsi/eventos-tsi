@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ReactComponent as IfsulLogoWhite } from '../assets/ifsul-logo-white.svg';
 import { FaCalendarPlus, FaUserPlus, FaUsers, FaUserShield, FaSignOutAlt, FaHome, FaUser } from 'react-icons/fa';
@@ -7,6 +7,8 @@ import '../App.css';
 
 const TopNav = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,6 +19,22 @@ const TopNav = () => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
   const { logout } = useAuth();
+
+  // Inicialização explícita do estado de autenticação
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const userId = localStorage.getItem('user_id');
+
+      if (token && userId) {
+        setUser({ id: userId });
+      } else {
+        setUser(null);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const toggleMenu = () => setMenuOpen(v => !v);
 
@@ -29,6 +47,15 @@ const TopNav = () => {
       navigate('/login', { replace: true });
     }
   };
+
+  // Controle claro de loading: evita renderizar navegação antes de saber o estado
+  if (loading) {
+    return (
+      <nav className="navbar">
+        <IfsulLogoWhite className="navbar-logo" role="img" aria-label="IFSUL" />
+      </nav>
+    );
+  }
 
   return (
     <nav className="navbar">

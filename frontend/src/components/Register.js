@@ -13,6 +13,7 @@ const Register = () => {
     telefone: '',
     dataNascimento: '',
     senha: '',
+    confirmSenha: '',
     cpf: '',
     tipo: '',
     matricula: '',
@@ -52,6 +53,19 @@ const Register = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    // validação de campos obrigatórios e confirmação de senha
+    const { nome, sobrenome, email, senha, confirmSenha, cpf, tipo } = formData;
+    if (!nome || !sobrenome || !email || !senha || !cpf || !tipo) {
+      setErrorMessage('Preencha todos os campos obrigatórios');
+      setSuccessMessage('');
+      return;
+    }
+    if (senha !== confirmSenha) {
+      setErrorMessage('As senhas não coincidem');
+      setSuccessMessage('');
+      return;
+    }
+
     try {
       // 1) Preparar o payload que será enviado ao backend.
       // Inclui os campos do formulário e as seleções de grupos/cursos.
@@ -81,6 +95,7 @@ const Register = () => {
           telefone: '',
           dataNascimento: '',
           senha: '',
+          confirmSenha: '',
           cpf: '',
           tipo: '',
           matricula: '',
@@ -164,6 +179,10 @@ const Register = () => {
             <div className="form-group">
               <label htmlFor="senha">Senha</label>
               <input type="password" id="senha" name="senha" className="form-control cadastro-evento-input" value={formData.senha} onChange={handleChange} required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="confirmSenha">Confirmar Senha</label>
+              <input type="password" id="confirmSenha" name="confirmSenha" className="form-control cadastro-evento-input" value={formData.confirmSenha} onChange={handleChange} required />
             </div>
             <div className="form-group">
               <label htmlFor="cpf">CPF</label>

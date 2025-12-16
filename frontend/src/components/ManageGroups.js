@@ -139,7 +139,7 @@ const ManageGroups = () => {
 
 			setMessage('Grupo atualizado com sucesso!');
 			setEditModalIsOpen(false);
-			carregarGrupos();
+			await carregarGrupos();
 		} catch (error) {
 			console.error('Erro ao atualizar grupo:', error);
 			setMessage(`${error.response?.data?.message || 'Erro ao atualizar grupo'}`);
@@ -155,7 +155,7 @@ const ManageGroups = () => {
 			await api.delete(`/groups/${groupId}`);
 
 			setMessage('Grupo deletado com sucesso!');
-			carregarGrupos();
+			await carregarGrupos();
 		} catch (error) {
 			console.error('Erro ao deletar grupo:', error);
 			// Prefer structured server message, then fallback to error.message

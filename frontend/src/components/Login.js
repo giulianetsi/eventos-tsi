@@ -15,6 +15,7 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' | 'error' | ''
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login: authenticate, isAuthenticated } = useAuth();
 
@@ -31,11 +32,18 @@ const Login = () => {
     // limpar mensagens anteriores
     setMessage('');
     setMessageType('');
+    setLoading(true);
+
+    // validação 
+    const loginTrimmed = (login || '').trim();
+    const senhaValue = senha || '';
+    if (!loginTrimmed || !senhaValue) {
+      setMessage('Preencha todos os campos');
+      setMessageType('error');
+      return;
+    }
 
     try {
-      // Enviar dados de login para o backend (trim no campo login para evitar espaços acidentais)
-      const loginTrimmed = (login || '').trim();
-      // console.log('Enviando dados para login:', { login: loginTrimmed, senha });
       const response = await api.post('/users/login', { login: loginTrimmed, senha });
       console.log('Resposta do servidor:', response.data);
       console.log('Status da resposta:', response.status);
@@ -210,8 +218,14 @@ const Login = () => {
       if (error.response) {
         console.error('Status do erro:', error.response.status);
         console.error('Dados do erro:', error.response.data);
-        setMessage(error.response.data.message || 'Erro no servidor');
-        setMessageType('error');
+        if (error.response.status === 401) {
+          // feedback claro ao usuário
+          setMessage('Usuário ou senha inválidos');
+          setMessageType('error');
+        } else {
+          setMessage(error.response.data.message || 'Erro no servidor');
+          setMessageType('error');
+        }
       } else if (error.request) {
         console.error('Erro de conexão:', error.request);
         setMessage('Erro de conexão com o servidor');
@@ -221,6 +235,8 @@ const Login = () => {
         setMessage(error.message || 'Erro desconhecido');
         setMessageType('error');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -247,6 +263,7 @@ const Login = () => {
 
           <div className="card login-card shadow-sm">
             <div className="card-body">
+              {loading && <p>Carregando...</p>}
               <form onSubmit={handleLogin}>
                 <div className="mb-3 username-field">
                   <label className="form-label login-label" htmlFor="username">Usuário</label>

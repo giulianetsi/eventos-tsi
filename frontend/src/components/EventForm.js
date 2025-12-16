@@ -223,6 +223,16 @@ const EventForm = () => {
     setLoading(true);
     setMessage('');
 
+    // Validação explícita mínima antes de qualquer processamento
+    const hasDate = (dateMode === 'single' ? Boolean(singleDate) : Boolean(periodStart && periodEnd));
+    if (!titulo || !hasDate) {
+      setMessage('Campos obrigatórios não preenchidos');
+      setMessageType('error');
+      setLoading(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
       // 1) Estado local: ler checkbox de notificação
   const sendNotification = sendNotificationChecked;
 

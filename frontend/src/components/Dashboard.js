@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
-import { ReactComponent as IfsulLogoWhite } from '../assets/ifsul-logo-white.svg';
 import '../App.css';
-import { FaEdit, FaTrashAlt, FaPlus, FaSearch, FaCalendarPlus, FaUserPlus, FaUsers, FaUserShield, FaSignOutAlt, FaThLarge } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import { Event } from './Event';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
-const customStyles = {
+  const customStyles = {
   content: {
     top: '50%',
     left: '50%',
@@ -26,7 +25,6 @@ const customStyles = {
 const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedEvento, setSelectedEvento] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [eventsPerPage, setEventsPerPage] = useState(16);
   const [filtroAtivo, setFiltroAtivo] = useState('todos'); 
@@ -37,7 +35,7 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
   const [dateFilterOpen, setDateFilterOpen] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [filterTick, setFilterTick] = useState(0); // alternado quando "Aplicar" é clicado para garantir re-render
+  // removido filtroTick não utilizado
   const dateFilterRef = useRef(null);
   const startInputRef = useRef(null);
   const navigate = useNavigate();
@@ -123,7 +121,7 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
   }, [isAuthenticated]);
 
   // Função para carregar eventos do banco de dados
-  const carregarEventos = async () => {
+  const carregarEventos = useCallback(async () => {
     try {
       setLoading(true);
   // O backend armazena o token de autenticação em cookie httpOnly; usar a instância api comCredentials
@@ -155,7 +153,7 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
     } finally {
       setLoading(false);
     }
-  };
+  }, [logout, navigate]);
 
   // Carregar eventos quando o componente monta
   useEffect(() => {
@@ -171,7 +169,7 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
       window.removeEventListener('evento-created', onCreated);
       window.removeEventListener('evento-updated', onUpdated);
     };
-  }, []); // Executar apenas uma vez ao montar
+  }, [carregarEventos]);
 
   // Fechar o painel de filtro de datas ao clicar fora ou pressionar Escape
   useEffect(() => {
@@ -430,26 +428,9 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
     setSelectedEvento(null);
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  // toggleMenu não utilizado removido
 
-  const handleLogout = async () => {
-    try {
-      console.log('Iniciando processo de logout...');
-  // Delegar ações reais de logout (limpeza local + chamada ao servidor) para AuthContext.logout
-      await logout();
-      console.log('Logout local realizado via AuthContext, redirecionando para login...');
-      navigate('/login', { replace: true });
-      
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-      
-      // Mesmo com erro no servidor, limpar estado local
-      try { await logout(); } catch {};
-      navigate('/login', { replace: true });
-    }
-  };
+  // handleLogout não utilizado removido
 
   const filtrarEventos = (tipo) => {
     setFiltroAtivo(tipo);
@@ -494,11 +475,7 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
 
   // Preencher a grade com espaços reservados até completar eventsPerPage.
   // Comportamento desejado: para estudantes/responsáveis mostrar a mesma grade de cartões (cartões coloridos para eventos; se não houver eventos, mostrar espaços reservados limpos).
-  const shouldShowPlaceholders = () => {
-  // Mostrar espaços reservados para manter uma grade consistente quando não há eventos.
-  // Usuários admin veem espaços reservados para o layout também; não-admins também veem quando não há eventos.
-    return true;
-  };
+  // shouldShowPlaceholders não utilizado removido
 
   return (
     <div>
@@ -569,10 +546,10 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
               <input className="filter-input" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
 
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-                <button type="button" className="btn btn-sm btn-light" onClick={() => { setCurrentPage(1); setFilterTick(t => t + 1); setDateFilterOpen(false); }}>
+                <button type="button" className="btn btn-sm btn-light" onClick={() => { setCurrentPage(1); setDateFilterOpen(false); }}>
                   Aplicar
                 </button>
-                <button type="button" className="btn btn-sm btn-secondary" onClick={() => { setStartDate(''); setEndDate(''); filtrarEventos('todos'); setCurrentPage(1); setFilterTick(t => t + 1); setDateFilterOpen(false); }}>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={() => { setStartDate(''); setEndDate(''); filtrarEventos('todos'); setCurrentPage(1); setDateFilterOpen(false); }}>
                   Limpar
                 </button>
               </div>

@@ -564,9 +564,7 @@ const Dashboard = ({ username, eventos: eventosProp = [], isAdmin: isAdminProp }
             </div>
           ) : (
             <>
-              {/* Removido bloco duplicado de Adicionar Evento */}
               {(() => {
-                // Sempre renderizar o botão grande (admin)
                 let blocos = [];
                 // Exibir apenas UM bloco de adicionar evento para quem tem permissão
                 let canAddEvent = false;

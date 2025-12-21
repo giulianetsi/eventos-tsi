@@ -1,13 +1,11 @@
+// Camada de regras de evento: visibilidade, CRUD e notificações.
 const db = require('../db');
 const webpush = require('web-push');
 const notificationModel = require('./notificationModel');
 const { DateTime } = require('luxon');
 
-// Converte um input (string ou Date) para uma string DATETIME em UTC adequada ao MySQL.
-// Comportamento:
-// - Se a string contém offset (ex: Z ou +02:00) usa o parser com o offset.
-// - Se NÃO contém offset, interpretamos o valor no fuso de Brasília (America/Sao_Paulo)
-//   e então o convertemos para UTC antes de formatar para 'YYYY-MM-DD HH:mm:ss'.
+// Converte um input (string ou Date) para DATETIME em UTC para o MySQL.
+// Regras resumidas: respeita offset se existir; caso contrário, assume America/Sao_Paulo e converte para UTC.
 function toUtcSqlDatetime(input) {
   try {
     if (!input && input !== 0) return null;
@@ -66,9 +64,10 @@ function toUtcSqlDatetime(input) {
   }
 }
 
-// Helpers para reduzir duplicação e manter a mesma lógica
+// Converte variações de boolean para true/false (1, '1', true, 'true').
 const normalizeBool = (val) => (val === 1 || val === '1' || val === true || String(val).toLowerCase() === 'true');
 
+// Trecho SELECT base reutilizado em listagens de eventos.
 const selectBase = (includeTarget = true) => `
   SELECT DISTINCT e.*, 
          CONCAT(u.first_name, ' ', u.last_name) as created_by,
@@ -82,6 +81,7 @@ const selectBase = (includeTarget = true) => `
   LEFT JOIN \`groups\` g ON eg.group_id = g.id
 `;
 
+// Filtra eventos por grupos: OR quando groups_combined=0, AND quando groups_combined=1.
 const groupsFilter = `(
   (
     (e.groups_combined = 0 
@@ -114,6 +114,7 @@ const groupsFilter = `(
   )
 )`;
 
+// Resolve usuário efetivo (responsável vira aluno) e permissões mínimas.
 async function resolveEffectiveUser(reqUser) {
   const userId = reqUser?.userId || reqUser;
 
@@ -152,6 +153,7 @@ async function resolveEffectiveUser(reqUser) {
   };
 }
 
+// Monta o filtro de tipos de usuário para target_user_types (aceita variantes em português/inglês).
 function buildTypeFilter(effectiveUserType) {
   const typeMap = {
     'aluno': ['aluno', 'student'],
@@ -159,8 +161,11 @@ function buildTypeFilter(effectiveUserType) {
     'responsavel': ['responsavel', 'guardian'],
     'admin': ['admin']
   };
+  // Lista de nomes aceitos para o tipo atual.
   const variants = typeMap[effectiveUserType] || [effectiveUserType];
+  // Parâmetros LIKE com lowercase para bind na query.
   const likeParams = variants.map(v => `%${String(v).toLowerCase()}%`);
+  // Monta cláusulas OR dinâmicas para cada variante.
   const containsClauses = variants.map(() => "LOWER(COALESCE(e.target_user_types,'')) LIKE ?").join(' OR ');
   return { variants, likeParams, containsClauses };
 }
@@ -171,6 +176,7 @@ function buildTypeFilter(effectiveUserType) {
  * Retorna um objeto: { events: Array, effectiveUserId }
  */
 async function getEventsForUser(reqUser) {
+  // Lista eventos visíveis considerando tipo, grupos e exceções de esquema.
   const { effectiveUserId, effectiveUserType } = await resolveEffectiveUser(reqUser);
   let query;
   let params = [];
@@ -178,10 +184,12 @@ async function getEventsForUser(reqUser) {
   const isAdmin = String(effectiveUserType || '').toLowerCase() === 'admin';
 
   if (isAdmin) {
+    // Admin: sem filtros extras.
     query = `${selectBase(true)}
       GROUP BY e.id
       ORDER BY e.event_datetime ASC`;
   } else {
+    // Filtros de tipo de usuário (target_user_types).
     const { likeParams, containsClauses } = buildTypeFilter(effectiveUserType);
 
     const visibleToUserType = `(
@@ -198,6 +206,7 @@ async function getEventsForUser(reqUser) {
       GROUP BY e.id
       ORDER BY e.event_datetime ASC`;
 
+    // Parâmetros: primeiro tipos, depois userId (duas vezes para o filtro de grupos OR/AND).
     params = [...likeParams, effectiveUserId, effectiveUserId];
   }
 
@@ -226,6 +235,7 @@ async function getEventsForUser(reqUser) {
     return { events, effectiveUserId };
   } catch (queryErr) {
     if (queryErr && queryErr.code === 'ER_BAD_FIELD_ERROR' && /target_user_types/.test(queryErr.message)) {
+      // Schema sem coluna target_user_types: refaz consulta sem o campo.
       if (isAdmin) {
         query = `${selectBase(false)}
           GROUP BY e.id
@@ -253,17 +263,19 @@ async function getEventsForUser(reqUser) {
  * @returns {Object} { id }
  */
 async function createEvent(data, reqUser) {
+  // Cria evento, associa grupos e agenda/envia notificações.
   const user_id = reqUser?.userId || data.user_id || null;
   let connection;
   try {
     connection = await db.getConnection();
-    // obter lista de colunas existentes na tabela `events` para evitar ER_BAD_FIELD_ERROR
+    // Descobre colunas existentes em events para evitar ER_BAD_FIELD_ERROR.
     const [colsInfo] = await connection.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'events'");
     const availableCols = new Set((colsInfo || []).map(r => r.COLUMN_NAME));
-    // montar colunas dinamicamente
+    // Monta INSERT apenas com colunas disponíveis e presentes nos dados.
     const columns = [];
     const placeholders = [];
     const values = [];
+    // Mapeia campos básicos recebidos para colunas se existirem.
     if ((data.titulo || data.title) && availableCols.has('title')) { columns.push('title'); placeholders.push('?'); values.push(data.titulo || data.title); }
     if ((data.descricao || data.description) && availableCols.has('description')) { columns.push('description'); placeholders.push('?'); values.push(data.descricao || data.description); }
     if ((data.tipo || data.type) && availableCols.has('type')) { columns.push('type'); placeholders.push('?'); values.push(data.tipo || data.type); }
@@ -276,6 +288,7 @@ async function createEvent(data, reqUser) {
     } else if (typeof is_public === 'number') {
       isPublicValue = is_public;
     }
+    // Salva flag de público se enviada.
     if (isPublicValue !== null) { columns.push('is_public'); placeholders.push('?'); values.push(isPublicValue); }
     const event_datetime = data.data_horario_evento || data.event_datetime || data.event_datetime_raw;
     if (event_datetime && availableCols.has('event_datetime')) { columns.push('event_datetime'); placeholders.push('?'); values.push(event_datetime); }
@@ -290,8 +303,7 @@ async function createEvent(data, reqUser) {
     try {
       [result] = await connection.execute(insertSql, values);
     } catch (insErr) {
-      // caso a execução falhe por colunas inexistentes (por exemplo em diferentes versões do schema),
-      // tentar remover as colunas problemáticas e reexecutar uma vez.
+      // Se o schema não tiver alguma coluna, remove e tenta de novo.
       if (insErr && insErr.code === 'ER_BAD_FIELD_ERROR' && /Unknown column/.test(insErr.message)) {
         const missingMatch = insErr.message.match(/Unknown column '([^']+)' in 'field list'/);
         if (missingMatch && missingMatch[1]) {
@@ -311,17 +323,17 @@ async function createEvent(data, reqUser) {
     }
     const eventId = result.insertId;
 
-    // target_user_types
+    // Persiste públicos-alvo (array -> JSON), se a coluna existir.
     const target_user_types = data.target_user_types || data.targetUserTypes;
       if (target_user_types && Array.isArray(target_user_types)) {
       try {
         await connection.execute('UPDATE events SET target_user_types = ? WHERE id = ?', [JSON.stringify(target_user_types), eventId]);
       } catch (updateError) {
-        // coluna pode não existir, ignorar
+        // Coluna pode não existir; ignora se falhar.
       }
     }
 
-    // associa grupos
+    // Associa grupos criando linhas em event_groups.
     const selectedGroups = data.selectedGroups || data.grupos || data.selected_groups;
     if (Array.isArray(selectedGroups) && selectedGroups.length > 0) {
       for (const groupId of selectedGroups) {
@@ -331,7 +343,7 @@ async function createEvent(data, reqUser) {
 
     await connection.commit();
 
-    // processar envio/agendamento de notificações (sem bloquear criação)
+    // Dispara notificações sem bloquear a criação.
     const sendNotification = data.sendNotification === true || data.sendNotification === 'true' || data.sendNotification === 1 || data.sendNotification === '1';
     const sendNotificationMode = data.sendNotificationMode || data.send_notification_mode || 'scheduled';
     const scheduledNotificationDatetime = data.scheduledNotificationDatetime || data.scheduled_notification_datetime;
@@ -345,7 +357,7 @@ async function createEvent(data, reqUser) {
         const DEFAULT_NOTIFICATION_TIME = process.env.DEFAULT_EVENT_NOTIFICATION_TIME || '09:00:00';
         try {
           if (String(sendNotificationMode).toLowerCase() === 'immediate' || String(sendNotificationMode).toLowerCase() === 'now') {
-              // Carregar subscriptions elegíveis através do model (aplica filtros de público e permissões)
+              // Carrega subscriptions elegíveis (aplica filtros de público/grupos).
               let uniqueSubscriptions = [];
               try {
                 const subs = await notificationModel.getEligibleSubscriptionsForEvent(eventId);
@@ -374,9 +386,7 @@ async function createEvent(data, reqUser) {
               }
           } else {
             let scheduledAt = null;
-            // toUtcSqlDatetime is defined at module scope and reused by update/create flows
-
-            // Antes de inserir, registrar os inputs brutos para diagnóstico (ajuda a entender falhas)
+            // Loga inputs brutos e calcula horário alvo em UTC.
             console.log('[eventModel] scheduling inputs:', { eventId, scheduledNotificationDatetime, event_datetime, data_period_start: data.data_period_start, data_period_end: data.data_period_end });
 
             if (scheduledNotificationDatetime) {
@@ -386,12 +396,12 @@ async function createEvent(data, reqUser) {
               const parsed = toUtcSqlDatetime(event_datetime);
               if (parsed) scheduledAt = parsed;
             } else if (event_datetime) {
-              // Se veio apenas a data em event_datetime (sem hora), compor com DEFAULT_NOTIFICATION_TIME
+              // Data sem hora: compõe com horário padrão.
               const composedEv = `${event_datetime} ${DEFAULT_NOTIFICATION_TIME}`;
               const parsedEv = toUtcSqlDatetime(composedEv);
               if (parsedEv) scheduledAt = parsedEv;
             } else if (data.data_period_start) {
-              // data_period_start contém apenas a data (YYYY-MM-DD). Converter para UTC
+              // Período: usa início + horário padrão.
               const composed = `${data.data_period_start} ${DEFAULT_NOTIFICATION_TIME}`;
               const parsedPeriod = toUtcSqlDatetime(composed);
               if (parsedPeriod) scheduledAt = parsedPeriod;
@@ -401,7 +411,7 @@ async function createEvent(data, reqUser) {
               if (!scheduledAt) {
                 console.warn('[eventModel] scheduledAt is null or unparsable — skipping scheduling for event', eventId, { scheduledNotificationDatetime, event_datetime, data_period_start: data.data_period_start });
               } else {
-                // Validar que scheduledAt esteja no futuro (UTC) para evitar envio imediato
+                // Garante que seja futuro em UTC para não disparar imediatamente.
                 const scheduledDate = new Date(scheduledAt.replace(' ', 'T') + 'Z');
                 const nowUtc = new Date();
                 if (scheduledDate.getTime() <= nowUtc.getTime()) {
@@ -409,7 +419,7 @@ async function createEvent(data, reqUser) {
                 } else {
                   console.log('[eventModel] scheduling notification (will insert):', { eventId, scheduledAt, payloadLen: payload && payload.length });
                   try {
-                    // Evitar inserir duplicatas: verificar se já existe agendamento pendente
+                    // Evita duplicar agendamento para mesma data/evento.
                     try {
                       const [existingRows] = await db.execute('SELECT id FROM scheduled_notifications WHERE event_id = ? AND scheduled_at = ? AND sent = 0 LIMIT 1', [eventId, scheduledAt]);
                       if (existingRows && existingRows.length > 0) {
@@ -450,7 +460,7 @@ async function createEvent(data, reqUser) {
  * @param {Object} reqUser
  */
 async function updateEvent(eventId, data, reqUser) {
-  // verificar proprietário/perm
+  // Atualiza evento apenas se criador ou quem tenha permissão equivalente.
   const [rows] = await db.execute('SELECT user_id FROM events WHERE id = ?', [eventId]);
   if (!rows || rows.length === 0) throw Object.assign(new Error('Evento não encontrado'), { status: 404 });
   const ownerId = rows[0].user_id;
@@ -459,7 +469,7 @@ async function updateEvent(eventId, data, reqUser) {
   const isAdmin = (reqUser?.userTypeId === 1) || (reqUser?.permissions && (reqUser.permissions.canCreateEvent || reqUser.permissions.can_create_event));
   if (Number(ownerId) !== Number(userId) && !isAdmin) throw Object.assign(new Error('Apenas o criador ou administrador pode editar este evento'), { status: 403 });
 
-  // executar update -- montar dinamicamente as colunas recebidas para evitar erros quando colunas inexistentes
+  // Monta SET dinamicamente para evitar colunas inexistentes.
   const candidates = [];
   if (data.titulo || data.title) candidates.push({ col: 'title', val: data.titulo || data.title });
   if (data.descricao || data.description) candidates.push({ col: 'description', val: data.descricao || data.description });
@@ -477,7 +487,7 @@ async function updateEvent(eventId, data, reqUser) {
   if (typeof data.isGroupsCombined !== 'undefined') candidates.push({ col: 'groups_combined', val: data.isGroupsCombined ? 1 : 0 });
 
   if (candidates.length > 0) {
-    // consultar colunas existentes
+    // Consulta colunas existentes para evitar erros de schema.
     const [colsInfo] = await db.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'events'");
     const availableCols = new Set((colsInfo || []).map(r => r.COLUMN_NAME));
     const setClauses = [];
@@ -495,13 +505,13 @@ async function updateEvent(eventId, data, reqUser) {
     }
   }
 
-  // target_user_types
+  // Atualiza públicos-alvo se vierem no payload.
   const target_user_types = data.target_user_types || data.targetUserTypes;
   if (target_user_types && Array.isArray(target_user_types)) {
     try { await db.execute('UPDATE events SET target_user_types = ? WHERE id = ?', [JSON.stringify(target_user_types), eventId]); } catch (err) {}
   }
 
-  // grupos: deletar e reinserir
+  // Grupos: remove vínculos antigos e recria os novos.
   const selectedGroups = data.selectedGroups || data.grupos || data.selected_groups;
   if (Array.isArray(selectedGroups)) {
     await db.execute('DELETE FROM event_groups WHERE event_id = ?', [eventId]);
@@ -510,7 +520,7 @@ async function updateEvent(eventId, data, reqUser) {
     }
   }
 
-  // notificações: similar a createEvent
+  // Notificações: igual à criação (imediato ou agendado).
   const sendNotification = data.sendNotification === true || data.sendNotification === 'true' || data.sendNotification === 1 || data.sendNotification === '1';
   const sendNotificationMode = data.sendNotificationMode || data.send_notification_mode || 'scheduled';
   const scheduledNotificationDatetime = data.scheduledNotificationDatetime || data.scheduled_notification_datetime;
@@ -519,7 +529,7 @@ async function updateEvent(eventId, data, reqUser) {
       const payload = JSON.stringify({ title: 'Evento atualizado', body: `Evento atualizado: ${data.titulo || data.title || 'Sem título'}`, data: { eventId: eventId } });
       try {
         if (String(sendNotificationMode).toLowerCase() === 'immediate' || String(sendNotificationMode).toLowerCase() === 'now') {
-          // Carregar subscriptions elegíveis através do model (aplica filtros de público e permissões)
+          // Carrega subscriptions elegíveis e envia push agora.
           let uniqueSubscriptions = [];
           try {
             const subs = await notificationModel.getEligibleSubscriptionsForEvent(eventId);
@@ -551,7 +561,7 @@ async function updateEvent(eventId, data, reqUser) {
           const containsTime = (s) => { if (!s) return false; return /T|\s+\d{2}:\d{2}|:\d{2}/.test(String(s)); };
           let scheduledAt = null;
           const event_datetime = data.data_horario_evento || data.event_datetime;
-          // Versão reutilizável da função de conversão com o mesmo comportamento robusto
+          // Reusa conversão para UTC.
           const toUtcSqlDatetime2 = toUtcSqlDatetime;
           if (scheduledNotificationDatetime) {
             const parsed = toUtcSqlDatetime2(scheduledNotificationDatetime);
@@ -565,7 +575,7 @@ async function updateEvent(eventId, data, reqUser) {
             const parsedEvU = toUtcSqlDatetime2(composedEvU);
             if (parsedEvU) scheduledAt = parsedEvU;
           } else if (data && data.data_period_start) {
-            // Em updateEvent, se o usuário forneceu data_period_start, usar a data+hora padrão convertida para UTC
+            // Se veio data_period_start, usa ela + hora padrão.
             const composed2 = `${data.data_period_start} ${DEFAULT_NOTIFICATION_TIME}`;
             const parsedPeriod2 = toUtcSqlDatetime2(composed2);
             if (parsedPeriod2) scheduledAt = parsedPeriod2;
@@ -576,14 +586,13 @@ async function updateEvent(eventId, data, reqUser) {
             if (!scheduledAt) {
               console.warn('[eventModel] scheduledAt is null for update — parse failed, skipping scheduling for event', eventId);
             } else {
-              // Validar futuro UTC
+              // Só agenda se estiver no futuro em UTC.
               const scheduledDate = new Date(scheduledAt.replace(' ', 'T') + 'Z');
               const nowUtc = new Date();
               if (scheduledDate.getTime() <= nowUtc.getTime()) {
                 console.warn('[eventModel] computed scheduledAt (update) is not in the future — skipping scheduling to avoid immediate send', { eventId, scheduledAt, nowUtc: nowUtc.toISOString() });
               } else {
-                // Tentar atualizar qualquer agendamento pendente existente para este evento.
-                // Se não houver linhas afetadas, inserir um novo agendamento.
+                // Atualiza agendamento pendente ou insere se não houver.
                 try {
                   const [updateRes] = await db.execute('UPDATE scheduled_notifications SET payload = ?, scheduled_at = ? WHERE event_id = ? AND sent = 0', [payload, scheduledAt, eventId]);
                   if (!updateRes || updateRes.affectedRows === 0) {

@@ -19,9 +19,25 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(async () => {
-    // Notificar o servidor sobre o logout
+    // Obter a subscription e endpoint antes de fazer logout
+    let endpoint = null;
     try {
-      await api.post('/users/logout');
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          endpoint = subscription.endpoint;
+          console.log('Endpoint obtido para remoção:', endpoint);
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao obter subscription para logout:', e?.message);
+    }
+
+    // Notificar o servidor sobre o logout (e remover subscription se houver endpoint)
+    try {
+      const body = endpoint ? { endpoint } : {};
+      await api.post('/users/logout', body);
     } catch (e) {
       // Continuar mesmo se falhar
       console.log('Aviso: erro ao notificar servidor do logout', e?.message);
